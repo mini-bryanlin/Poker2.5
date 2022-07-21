@@ -73,8 +73,9 @@ public class Game {
             }
         }
         for (hand i: players){
-            System.out.println(i.cardOne.value + " of " + i.cardOne.suit + " and " +i.cardTwo.value + " of " + i.cardTwo.suit);
+            System.out.println(i.cardOne.value + " of " + suitSymbol.get(i.cardOne.suit) + " and " +i.cardTwo.value + " of " + suitSymbol.get(i.cardTwo.suit));
         }
+        System.out.print("anna is pro");
         Action.manageBet(players,currentPot);
         currentPot.flop(deck,currentPot);
         System.out.println("Flop: " + currentPot.cardOne.value + " of " + currentPot.cardOne.suit + " and "+ currentPot.cardTwo.value + " of " + currentPot.cardTwo.suit + " and "+currentPot.cardThree.value + " of " + currentPot.cardThree.suit);
