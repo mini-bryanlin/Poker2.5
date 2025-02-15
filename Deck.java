@@ -81,7 +81,7 @@ public class Deck {
         System.out.println("Drawn card: " + card); // Will print something like "A♠"
 
         // Draw multiple cards
-        List<Card> hand = deck.drawCards(5);
+        List<Card> hand = deck.drawCards(6);
         System.out.println("Drawn hand: " + hand);
 
         // Check remaining cards
