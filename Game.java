@@ -8,6 +8,8 @@ public class Game {
     private int bigBlind;
     private int smallBlind;
     private int startingChips;
+    private int pot;
+    private ArrayList communityCards;
     
     public Game(int startingChips, int smallBlind) {
         this.players = new ArrayList<>();
@@ -16,12 +18,36 @@ public class Game {
         this.smallBlind = smallBlind;
         this.bigBlind = smallBlind * 2;
         this.startingChips = startingChips;
+        this.pot = 0;
+        this.communityCards = new ArrayList<>();
     }
-    
+    // adding community cards
+    public void dealCommunityCards(int numCards) {
+        if (numCards < 0 || numCards > 5) {
+            throw new IllegalArgumentException("Number of community cards must be between 0 and 5");
+        }
+        communityCards.addAll(deck.drawCards(numCards));
+    }
+    // adding to pot
+    public void addToPot(int amount) {
+        if (amount < 0) {
+            throw new IllegalArgumentException("Cannot add a negative amount to the pot");
+        }
+        pot += amount;
+    }
+    // get pot 
+    public int getPot() {
+        return pot;
+    }
+    //add player
     public void addPlayer(String name) {
         players.add(new Player(name, startingChips));
     }
-    
+    //reset pot
+    public void resetPot() {
+        pot = 0;
+    }
+
     public void removePlayer(String name) {
         players.removeIf(player -> player.getName().equals(name));
     }
