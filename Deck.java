@@ -1,4 +1,5 @@
 // Deck.java
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -69,9 +70,9 @@ public class Deck {
                ", cards=" + cards +
                '}';
     }
-    static {
+    public static void main(String[] args){
         Deck deck = new Deck();
-
+        System.out.println(deck);
         // Shuffle the deck
         deck.shuffle();
 
@@ -88,5 +89,6 @@ public class Deck {
 
         // Reset the deck to initial state
         deck.reset();
+
     }
 }
