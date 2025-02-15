@@ -63,7 +63,7 @@ public class Game {
         deck.reset();
         deck.shuffle();
     }
-    private HandStrength evaluateHandStrength(List<Card> cards) {
+    private HandStrength evaluateHandStrength(ArrayList<Card> cards) {
         int pairCount = 0;
         boolean hasThreeOfAKind= false;
         boolean hasFourOfAKind = false;
@@ -83,24 +83,71 @@ public class Game {
             } else if (count == 4) {
                 hasFourOfAKind = true;
             }
-        Collections.sort(values);   
+           
         }
-        if (hasFourOfAKind) {
+        Collections.sort(values);
+        if (isRoyalFlush(cards)) {
+            return HandStrength.ROYAL_FLUSH;
+        }
+         else if (isFlush(cards)&& isStraight(values)) {
+            return HandStrength.STRAIGHT_FLUSH;
+        }else if (hasFourOfAKind) {
             return HandStrength.FOUR_OF_A_KIND;
-        }
-        else if (hasThreeOfAKind && pairCount >= 1) {
-            return HandStrength.FULL_HOUSE; // Full house: three of a kind + at least one pair
+        }else if (hasThreeOfAKind && pairCount >= 1) {
+            return HandStrength.FULL_HOUSE;
+        }else if (isFlush(cards)) {
+            return HandStrength.FLUSH;
+        }else if (isStraight(values)) {
+            return HandStrength.STRAIGHT;
         } else if (hasThreeOfAKind) {
-            return HandStrength.THREE_OF_A_KIND; // Three of a kind
+            return HandStrength.THREE_OF_A_KIND;
         } else if (pairCount >= 2) {
-            return HandStrength.TWO_PAIR; // Two pairs
+            return HandStrength.TWO_PAIR;
         } else if (pairCount == 1) {
-            return HandStrength.ONE_PAIR; // One pair
+            return HandStrength.ONE_PAIR;
+        } else if (isStraight(values)) {
+            return HandStrength.STRAIGHT;
         } else {
-            return HandStrength.HIGH_CARD; // High card
-        }   
+            return HandStrength.HIGH_CARD;
+        }
     }
     
+    public static boolean isRoyalFlush(ArrayList<Card> cards) {
+        // Check if there are at least 5 cards
+        
+
+        // Create a set of required ranks for a royal flush
+        ArrayList<Card.Rank> requiredRanks = new ArrayList<>();
+        requiredRanks.add(Card.Rank.TEN);
+        requiredRanks.add(Card.Rank.JACK);
+        requiredRanks.add(Card.Rank.QUEEN);
+        requiredRanks.add(Card.Rank.KING);
+        requiredRanks.add(Card.Rank.ACE);
+
+        // Check if all required ranks are present in the hand
+        ArrayList<Card.Rank> ranksInHand = new ArrayList<>();
+        for (Card card : cards) {
+            ranksInHand.add(card.getRank());
+        }
+
+        if (!ranksInHand.containsAll(requiredRanks)) {
+            return false; // Not all required ranks are present
+        }
+
+        // Check if all required cards are of the same suit
+        Card.Suit suit = null;
+        for (Card card : cards) {
+            if (requiredRanks.contains(card.getRank())) {
+                if (suit == null) {
+                    suit = card.getSuit(); // Set the suit for the first card
+                } else if (card.getSuit() != suit) {
+                    return false; // Cards are not of the same suit
+                }
+            }
+        }
+
+        return true; // Royal flush found
+    }
     private static boolean isStraight(ArrayList<Integer> values) {
         // Sort the ArrayList in ascending order
         Collections.sort(values);
@@ -154,7 +201,7 @@ public class Game {
         }
     
         // Combine the player's hand and community cards
-        List<Card> allCards = new ArrayList<>(player.getHand());
+        ArrayList<Card> allCards = new ArrayList<>(player.getHand());
         allCards.addAll(communityCards);
     
         // Ensure there are exactly 7 cards (2 in hand + 5 community cards)
