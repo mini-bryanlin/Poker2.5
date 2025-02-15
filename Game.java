@@ -7,6 +7,7 @@ public class Game {
     private int currentDealer;
     private int bigBlind;
     private int smallBlind;
+    private int startingChips;
     
     public Game(int startingChips, int smallBlind) {
         this.players = new ArrayList<>();
@@ -14,10 +15,11 @@ public class Game {
         this.currentDealer = 0;
         this.smallBlind = smallBlind;
         this.bigBlind = smallBlind * 2;
+        this.startingChips = startingChips;
     }
     
     public void addPlayer(String name) {
-        players.add(new Player(name, 100));
+        players.add(new Player(name, startingChips));
     }
     
     public void removePlayer(String name) {
