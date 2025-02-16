@@ -1,1 +1,1 @@
-#Terminal Poker with a Client Server Implementation
+Terminal Poker with a Client Server Implementation
