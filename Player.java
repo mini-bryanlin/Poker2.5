@@ -9,6 +9,7 @@ public class Player {
     private boolean isActive;
     private int currentBet;
     private boolean hasActed;
+    public HandStrength strength;
     
     public Player(String name, int startingChips) {
         this.name = name;
