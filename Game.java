@@ -268,9 +268,7 @@ public class Game {
         System.out.println(players.get(smallBlindindex).getName()+" is the small blind for " + smallBlind);
         players.get((smallBlindindex+1)%players.size()).placeBet(smallBlind*2);
         System.out.println(players.get((smallBlindindex+1)%players.size()).getName()+" is the big blind for " + smallBlind*2);
-        for (Player player: players){
-            player.currentBet = 0;
-        }
+        
         pot += 3*smallBlind;
         // Pre-flop round
         System.out.println("\n--- Pre-flop Round ---");
@@ -332,7 +330,7 @@ public class Game {
     }
 
     private void bettingRound() {
-        int currentBet = 0;
+        int currentBet = smallBlind*2;
         
         for (Player player : getActivePlayers()) {
             System.out.println("\n" + player.getName() + ", it's your turn.");
@@ -366,7 +364,7 @@ public class Game {
                     int betAmount = scanner.nextInt();
                     player.placeBet(betAmount);
                     pot += betAmount;
-                    currentBet = betAmount;
+                    currentBet += betAmount;
                     System.out.println(player.getName() + " bets " + betAmount + " chips.");
                     break;
                 case 4: // Stand
@@ -458,7 +456,7 @@ public class Game {
             game.resetGame();
             System.err.println("Continue?(y/N): ");
             String input = scanner.nextLine();
-            if (input.equals("N")){
+            if (input.equals("N") || input.equals("n") ){
                 break;
             }
             
