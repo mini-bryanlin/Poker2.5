@@ -248,11 +248,19 @@ public class Game {
             System.out.println(player.getName() + " has been dealt 2 cards.");
         }
         //blinds
+        int bigBlindindex = smallBlindindex+1;
+        if (bigBlindindex > players.size()-1){
+            bigBlindindex = 0;
+        }
         System.out.println("\n--- Blinds ---");
         players.get(smallBlindindex).placeBet(smallBlind);
         System.out.println(players.get(smallBlindindex).getName()+" is the small blind for " + smallBlind);
         players.get(smallBlindindex+1).placeBet(smallBlind*2);
         System.out.println(players.get(smallBlindindex+1).getName()+" is the big blind for " + smallBlind*2);
+        for (Player player: players){
+            player.currentBet = 0;
+        }
+        pot += 3*smallBlind;
         // Pre-flop round
         System.out.println("\n--- Pre-flop Round ---");
         bettingRound();
@@ -271,7 +279,7 @@ public class Game {
              
         }
     
-        // Turn round
+        // Turn rond
         if (getActivePlayers().size() > 1) {
             System.out.println("\n--- Turn Round ---");
             dealCommunityCards(1);
@@ -431,13 +439,13 @@ public class Game {
         
         // Start the game
         int time = 0;
-        while (true){
-            int blind = time%numPlayers;
+        // while (true){
+        //     int blind = time%numPlayers;
             Game game = new Game(players,1000,5);
-            game.startGame(blind);
+            game.startGame(0);
             time += 1;
         
-        }
+        
     }
 }
 
