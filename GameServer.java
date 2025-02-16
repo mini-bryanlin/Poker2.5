@@ -9,7 +9,7 @@ public class GameServer {
     private List<ClientHandler> clients;
     private Game game;
     private ExecutorService pool;
-    private int expectedPlayers;  // New field for expected number of players
+    private int expectedPlayers;
 
     public GameServer() {
         clients = new ArrayList<>();
@@ -38,8 +38,10 @@ public class GameServer {
                 clients.add(clientHandler);
                 pool.execute(clientHandler);
                 System.out.println("Player connected: " + clients.size() + "/" + expectedPlayers);
+                broadcastMessage("PLAYER_COUNT:" + clients.size() + "/" + expectedPlayers);
             }
 
+            System.out.println("All players connected. Starting game setup...");
             // Wait for all players to be ready
             if (waitForPlayersReady()) {
                 // Initialize and start the game
@@ -55,6 +57,7 @@ public class GameServer {
 
         } catch (IOException e) {
             e.printStackTrace();
+            broadcastMessage("ERROR:Server encountered an error. Game ending.");
         } finally {
             stop();
         }
@@ -64,29 +67,87 @@ public class GameServer {
         System.out.println("Waiting for all players to confirm they're ready...");
         
         // Send ready check to all clients
-        for (ClientHandler client : clients) {
-            client.sendMessage("READY_CHECK:Are you ready to start? (yes/no)");
-        }
+        broadcastMessage("READY_CHECK:Are you ready to start? (yes/no)");
 
-        // Wait for all responses
+        // Set a timeout for responses
+        long timeout = System.currentTimeMillis() + 30000; // 30 second timeout
         Map<String, Boolean> playerReadyStatus = new HashMap<>();
-        for (ClientHandler client : clients) {
-            String response = client.receiveMessage();
-            playerReadyStatus.put(client.getPlayerName(), response.equalsIgnoreCase("yes"));
+        
+        // Wait for responses with timeout
+        while (playerReadyStatus.size() < clients.size() && System.currentTimeMillis() < timeout) {
+            for (ClientHandler client : clients) {
+                if (!playerReadyStatus.containsKey(client.getPlayerName())) {
+                    String response = client.receiveMessage();
+                    if (response != null) {
+                        playerReadyStatus.put(client.getPlayerName(), response.equalsIgnoreCase("yes"));
+                        broadcastReadyStatus(playerReadyStatus);
+                    }
+                }
+            }
             
-            // Broadcast each player's ready status
-            broadcastReadyStatus(playerReadyStatus);
+            try {
+                Thread.sleep(100); // Small delay to prevent CPU spinning
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return false;
+            }
         }
 
-        // Check if all players are ready
-        boolean allReady = playerReadyStatus.values().stream().allMatch(ready -> ready);
+        // Check if all players responded and are ready
+        boolean allReady = playerReadyStatus.size() == clients.size() && 
+                          playerReadyStatus.values().stream().allMatch(ready -> ready);
         
         if (allReady) {
             broadcastMessage("ALL_READY:All players are ready! Game starting...");
             return true;
         } else {
-            broadcastMessage("CANCELED:Some players were not ready. Please reconnect to try again.");
+            broadcastMessage("CANCELED:Not all players ready or timeout occurred. Please reconnect to try again.");
             return false;
+        }
+    }
+
+    private void runGameLoop() {
+        try {
+            int time = 1;
+            int maxRounds = 100; // Maximum number of rounds as safety
+            
+            while (time <= maxRounds) {
+                broadcastMessage("GAME_START:Round " + time + " starting!");
+                System.out.println("Starting round " + time);
+                
+                int blind = time % clients.size();
+                game.startGame(blind);
+                
+                // Send cards to each player
+                ArrayList<Player> players = game.getPlayers();
+                for (int i = 0; i < clients.size(); i++) {
+                    Player player = (Player) players.get(i);
+                    ClientHandler client = clients.get(i);
+                    client.sendMessage("CARDS:" + player.getHand().toString());
+                    System.out.println("Sent cards to " + player.getName() + ": " + player.getHand().toString());
+                }
+                
+                time++;
+                game.resetGame();
+                
+                // Ask to continue with timeout
+                if (!askToContinue()) {
+                    break;
+                }
+
+                // Ready check for next round with timeout
+                if (!waitForPlayersReady()) {
+                    break;
+                }
+            }
+            
+            if (time > maxRounds) {
+                broadcastMessage("GAME_END:Maximum number of rounds reached.");
+            }
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            broadcastMessage("ERROR:An error occurred. Game ending.");
         }
     }
 
@@ -98,68 +159,54 @@ public class GameServer {
                   .append(entry.getValue() ? "Ready" : "Not Ready")
                   .append(", ");
         }
+        
+        // Remove the trailing comma and space if exists
+        if (status.length() > 12) {
+            status.setLength(status.length() - 2);
+        }
+        
         broadcastMessage(status.toString());
     }
 
     private void broadcastMessage(String message) {
+        System.out.println("Broadcasting: " + message); // Server-side logging
         for (ClientHandler client : clients) {
-            client.sendMessage(message);
-        }
-    }
-
-    private void runGameLoop() {
-        try {
-            int time = 1;
-            while (true) {
-                broadcastMessage("GAME_START:Round " + time + " starting!");
-                
-                int blind = time % clients.size();
-                game.startGame(blind);
-                
-                // Send cards to each player
-                ArrayList<Player> players = game.getPlayers();
-                for (int i = 0; i < clients.size(); i++) {
-                    Player player = (Player) players.get(i);
-                    ClientHandler client = clients.get(i);
-                    client.sendMessage("CARDS:" + player.getHand().toString());
-                }
-                
-                time++;
-                game.resetGame();
-                
-                // Ask to continue
-                boolean continuePlaying = askToContinue();
-                if (!continuePlaying) {
-                    break;
-                }
-
-                // Ready check for next round
-                if (!waitForPlayersReady()) {
-                    break;
-                }
+            try {
+                client.sendMessage(message);
+            } catch (Exception e) {
+                System.err.println("Failed to send message to " + client.getPlayerName() + ": " + e.getMessage());
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 
     private boolean askToContinue() {
-        // Broadcast continue question to all clients
-        for (ClientHandler client : clients) {
-            client.sendMessage("CONTINUE:Do you want to continue? (y/N)");
-        }
+        broadcastMessage("CONTINUE:Do you want to continue? (y/N)");
 
-        // Wait for all responses
-        boolean continueGame = true;
-        for (ClientHandler client : clients) {
-            String response = client.receiveMessage();
-            if (response.equalsIgnoreCase("n")) {
-                continueGame = false;
-                break;
+        // Set a timeout for responses
+        long timeout = System.currentTimeMillis() + 30000; // 30 second timeout
+        Map<String, Boolean> responses = new HashMap<>();
+        
+        while (responses.size() < clients.size() && System.currentTimeMillis() < timeout) {
+            for (ClientHandler client : clients) {
+                if (!responses.containsKey(client.getPlayerName())) {
+                    String response = client.receiveMessage();
+                    if (response != null) {
+                        responses.put(client.getPlayerName(), !response.equalsIgnoreCase("n"));
+                    }
+                }
+            }
+            
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return false;
             }
         }
 
-        // Broadcast the decision
+        boolean continueGame = responses.size() == clients.size() && 
+                             !responses.containsValue(false);
+
         broadcastMessage(continueGame ? "CONTINUING:Game will continue!" : "ENDING:Game will end.");
         return continueGame;
     }
@@ -200,7 +247,10 @@ public class GameServer {
 
         public String receiveMessage() {
             try {
-                return in.readLine();
+                if (in.ready()) {
+                    return in.readLine();
+                }
+                return null;
             } catch (IOException e) {
                 e.printStackTrace();
                 return null;
@@ -227,6 +277,7 @@ public class GameServer {
                 String inputLine;
                 while ((inputLine = in.readLine()) != null) {
                     // Handle client messages here
+                    System.out.println("Received from " + playerName + ": " + inputLine);
                 }
             } catch (IOException e) {
                 e.printStackTrace();

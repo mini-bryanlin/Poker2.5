@@ -428,6 +428,7 @@ public class Game {
 
         }
     }
+    
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
 
@@ -448,7 +449,7 @@ public class Game {
             String name = scanner.next();
             players.add(new Player(name, 1000)); // Each player starts with 1000 chips
         }
-        
+
         //Start the game
         int time = 1;
         while (true){

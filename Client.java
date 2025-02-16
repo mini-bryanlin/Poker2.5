@@ -3,7 +3,7 @@ import java.net.*;
 import java.util.Scanner;
 
 public class Client {
-    private static final String SERVER_IP = "192.168.2.24"; // Replace with server IP
+    private static final String SERVER_IP = "ip"; // Replace with server IP
     private static final int PORT = 4444;
 
     public static void main(String[] args) {
