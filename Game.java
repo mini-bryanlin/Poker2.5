@@ -58,6 +58,9 @@ public class Game {
         resetCommunityCards();
         deck.reset();
         deck.shuffle();
+        for (Player player: players){
+            player.resetForNewRound();
+        }
     }
     private HandStrength evaluateHandStrength(ArrayList<Card> cards) {
         int pairCount = 0;
@@ -246,7 +249,7 @@ public class Game {
         winner.win(pot);
     }
     public void startGame(int smallBlindindex) {
-        System.out.println("Starting a new poker game!");
+        System.out.println("\n--- Starting a new poker game! --- \n");
         deck.shuffle();
     
         // Deal 2 cards to each player (pre-flop)
@@ -263,8 +266,8 @@ public class Game {
         System.out.println("\n--- Blinds ---");
         players.get(smallBlindindex).placeBet(smallBlind);
         System.out.println(players.get(smallBlindindex).getName()+" is the small blind for " + smallBlind);
-        players.get(smallBlindindex+1).placeBet(smallBlind*2);
-        System.out.println(players.get(smallBlindindex+1).getName()+" is the big blind for " + smallBlind*2);
+        players.get((smallBlindindex+1)%players.size()).placeBet(smallBlind*2);
+        System.out.println(players.get((smallBlindindex+1)%players.size()).getName()+" is the big blind for " + smallBlind*2);
         for (Player player: players){
             player.currentBet = 0;
         }
@@ -445,24 +448,22 @@ public class Game {
             players.add(new Player(name, 1000)); // Each player starts with 1000 chips
         }
         
-        // Start the game
-        // int time = 0;
-        // // while (true){
-        // //     int blind = time%numPlayers;
-        //     Game game = new Game(players,1000,5);
-        //     game.startGame(0);
-        //     time += 1;
-        ArrayList<Integer> test = new ArrayList<>();
-        test.add(2);
-        test.add(3);
-        test.add(4);
-        test.add(5);
-        test.add(12);
-        test.add(9);
-        test.add(14);
-        System.err.println(isStraight(test));
+        //Start the game
+        int time = 1;
+        while (true){
+            int blind = time%numPlayers;
+            Game game = new Game(players,1000,5);
+            game.startGame(blind);
+            time += 1;
+            game.resetGame();
+            System.err.println("Continue?(y/N): ");
+            String input = scanner.nextLine();
+            if (input.equals("N")){
+                break;
+            }
+            
         
-        
+        }
     }
 }
 
