@@ -7,7 +7,7 @@ public class Player {
     private ArrayList<Card> hand;
     private int chips;
     private boolean isActive;
-    private int currentBet;
+    public int currentBet;
     private boolean hasActed;
     public HandStrength strength;
     

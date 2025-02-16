@@ -234,7 +234,7 @@ public class Game {
             }
         }
         
-        System.out.println(winner.getName() + " wins the pot of " + pot + " chips!");
+        System.out.println(winner.getName() + " wins the pot of " + pot + " chips with "+ winner.strength.getName()+" !");
         winner.win(pot);
     }
     public void startGame(int smallBlindindex) {
@@ -256,12 +256,18 @@ public class Game {
         // Pre-flop round
         System.out.println("\n--- Pre-flop Round ---");
         bettingRound();
+        for (Player player: players){
+            player.currentBet = 0;
+        }
     
         // Flop round
         if (getActivePlayers().size() > 1) {
             System.out.println("\n--- Flop Round ---");
             dealCommunityCards(3);
             bettingRound();
+            for (Player player: players){
+                player.currentBet = 0;
+            }
              
         }
     
@@ -270,6 +276,9 @@ public class Game {
             System.out.println("\n--- Turn Round ---");
             dealCommunityCards(1);
             bettingRound();
+            for (Player player: players){
+                player.currentBet = 0;
+            }
         }
     
         // River round
@@ -277,12 +286,16 @@ public class Game {
             System.out.println("\n--- River Round ---");
             dealCommunityCards(1);
             bettingRound();
+            for (Player player: players){
+                player.currentBet = 0;
+            }
         }
     
         // Showdown
         if (getActivePlayers().size() > 1) {
             System.out.println("\n--- Showdown ---");
             determineWinner();
+            
         } else {
             Player winner = getActivePlayers().get(0);
             System.out.println("\nAll players folded. " + winner.getName() + " wins the pot of " + pot + " chips!");
