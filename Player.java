@@ -4,7 +4,7 @@ import java.util.List;
  
 public class Player {
     private String name;
-    private ArrayList<Card> hand;
+    public ArrayList<Card> hand;
     private int chips;
     private boolean isActive;
     public int currentBet;
