@@ -34,6 +34,9 @@ public class Game {
         pot += amount;
     }
     // get pot 
+    public ArrayList getPlayers(){
+        return players;
+    }
     public int getPot() {
         return pot;
     }
@@ -219,7 +222,7 @@ public class Game {
         // Evaluate the hand strength
         player.strength = evaluateHandStrength(allCards);
     }
-    private List<Player> getActivePlayers() {
+    public List<Player> getActivePlayers() {
         List<Player> activePlayers = new ArrayList<>();
         for (Player player : players) {
             if (player.isActive()) {
