@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
 public class Game {
-    private List<Player> players;
+    private ArrayList<Player> players;
     private Deck deck;
     private int currentDealer;
     private int bigBlind;
@@ -224,12 +224,20 @@ public class Game {
         System.out.println("Community cards: " + communityCards);
     }
     private void determineWinner() {
-        // Simplified winner determination (compare hands)
-        Player winner = getActivePlayers().get(0); // Assume the first active player is the winner
+        for (Player player: players){
+            evaluateHand(player);
+        }
+        Player winner = getActivePlayers().get(0);
+        for (Player player: players){
+            if (player.strength.getStrength() > winner.strength.getStrength()){
+                winner = player;
+            }
+        }
+        
         System.out.println(winner.getName() + " wins the pot of " + pot + " chips!");
         winner.win(pot);
     }
-    public void startGame() {
+    public void startGame(int smallBlindindex) {
         System.out.println("Starting a new poker game!");
         deck.shuffle();
     
@@ -239,7 +247,12 @@ public class Game {
             player.receiveCard(deck.drawCard());
             System.out.println(player.getName() + " has been dealt 2 cards.");
         }
-    
+        //blinds
+        System.out.println("\n--- Blinds ---");
+        players.get(smallBlindindex).placeBet(smallBlind);
+        System.out.println(players.get(smallBlindindex).getName()+" is the small blind for " + smallBlind);
+        players.get(smallBlindindex+1).placeBet(smallBlind*2);
+        System.out.println(players.get(smallBlindindex+1).getName()+" is the big blind for " + smallBlind*2);
         // Pre-flop round
         System.out.println("\n--- Pre-flop Round ---");
         bettingRound();
@@ -249,6 +262,7 @@ public class Game {
             System.out.println("\n--- Flop Round ---");
             dealCommunityCards(3);
             bettingRound();
+             
         }
     
         // Turn round
@@ -275,11 +289,22 @@ public class Game {
             winner.win(pot);
         }
     }
-    
+    private boolean checkCalled(ArrayList players, int currentBet){
+        for (Player player : getActivePlayers()){
+            if (player.getCurrentBet() != currentBet){
+                return false;
+            }
+
+        }
+        return true;
+    }
+
     private void bettingRound() {
         int currentBet = 0;
+        
         for (Player player : getActivePlayers()) {
             System.out.println("\n" + player.getName() + ", it's your turn.");
+            System.err.println("Pot: " + pot);
             System.out.println("Community cards: " + communityCards);
             System.out.println("Your hand: " + player.getHand());
             System.out.println("Current bet: " + currentBet);
@@ -299,7 +324,7 @@ public class Game {
                         System.out.println("Cannot Call");
                         break;
                     }
-                    int callAmount = currentBet;
+                    int callAmount = currentBet - player.getCurrentBet();
                     player.placeBet(callAmount);
                     pot += callAmount;
                     System.out.println(player.getName() + " calls " + callAmount + " chips.");
@@ -319,6 +344,55 @@ public class Game {
                     System.out.println("Invalid choice. Please try again.");
                     break;
             }
+        }
+        while (checkCalled(players, currentBet)==false){
+            for (Player player : getActivePlayers()) {
+                if (player.getCurrentBet() == currentBet){
+                    continue;
+                }
+                System.out.println("\n" + player.getName() + ", it's your turn.");
+                System.err.println("Pot: " + pot);
+                System.out.println("Community cards: " + communityCards);
+                System.out.println("Your hand: " + player.getHand());
+                System.out.println("Current bet: " + currentBet);
+                System.out.println("Your chips: " + player.getChips());
+                
+                System.out.println("Choose an action: (1) Fold, (2) Call, (3) Bet, (4) Stand");
+                int choice = scanner.nextInt();
+        
+                switch (choice) {
+                    case 1: // Fold
+                        player.fold();
+                        System.out.println(player.getName() + " folds.");
+                        break;
+                    case 2: // Call
+                        
+                        if (currentBet == 0){
+                            System.out.println("Cannot Call");
+                            break;
+                        }
+                        int callAmount = currentBet - player.getCurrentBet();
+                        player.placeBet(callAmount);
+                        pot += callAmount;
+                        System.out.println(player.getName() + " calls " + callAmount + " chips.");
+                        break;
+                    case 3: // Bet
+                        System.out.println("Enter the amount to bet:");
+                        int betAmount = scanner.nextInt();
+                        player.placeBet(betAmount);
+                        pot += betAmount;
+                        currentBet = betAmount;
+                        System.out.println(player.getName() + " bets " + betAmount + " chips.");
+                        break;
+                    case 4: // Stand
+                        System.out.println(player.getName() + " stands.");
+                        break;
+                    default:
+                        System.out.println("Invalid choice. Please try again.");
+                        break;
+                }
+            }
+
         }
     }
     public static void main(String[] args) {
@@ -343,8 +417,14 @@ public class Game {
         }
         
         // Start the game
-        Game game = new Game(players,1000,5);
-        game.startGame();
+        int time = 0;
+        while (true){
+            int blind = time%numPlayers;
+            Game game = new Game(players,1000,5);
+            game.startGame(blind);
+            time += 1;
+        
+        }
     }
 }
 
