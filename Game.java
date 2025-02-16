@@ -15,8 +15,8 @@ public class Game {
     private ArrayList communityCards;
     private Scanner scanner = new Scanner(System.in);
     
-    public Game(int startingChips, int smallBlind) {
-        this.players = new ArrayList<>();
+    public Game(ArrayList players,int startingChips, int smallBlind) {
+        this.players = players;
         this.deck = new Deck();
         this.currentDealer = 0;
         this.smallBlind = smallBlind;
@@ -321,5 +321,30 @@ public class Game {
             }
         }
     }
-    
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        // Ask for the number of players
+        System.out.println("Enter the number of players (2-8):");
+        int numPlayers = scanner.nextInt();
+
+        // Validate the number of players
+        if (numPlayers < 2 || numPlayers > 8) {
+            System.out.println("Invalid number of players. Please enter a number between 2 and 8.");
+            return;
+        }
+
+        // Initialize players
+        ArrayList<Player> players = new ArrayList<>();
+        for (int i = 1; i <= numPlayers; i++) {
+            System.out.println("Enter name for Player " + i + ":");
+            String name = scanner.next();
+            players.add(new Player(name, 1000)); // Each player starts with 1000 chips
+        }
+        
+        // Start the game
+        Game game = new Game(players,1000,5);
+        game.startGame();
+    }
 }
+
