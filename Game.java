@@ -147,12 +147,20 @@ public class Game {
     private static boolean isStraight(ArrayList<Integer> values) {
         // Sort the ArrayList in ascending order
         Collections.sort(values);
-
+        boolean flag = false;
         // Check all possible 5-card combinations
         for (int i = 0; i <= values.size() - 5; i++) {
+            int previous = values.get(i);
+            int count = 0;
             // Check if the 5 cards are consecutive
-            if (values.get(i + 4) - values.get(i) == 4) {
-                return true; // Straight found
+            for (int j = 1; j <= 5; j++ ){
+                if (values.get(j)== previous +1){
+                    count += 1;
+                }
+            if (count == 4){
+                return true;
+            }
+                previous = values.get(j);
             }
         }
 
@@ -438,12 +446,21 @@ public class Game {
         }
         
         // Start the game
-        int time = 0;
-        // while (true){
-        //     int blind = time%numPlayers;
-            Game game = new Game(players,1000,5);
-            game.startGame(0);
-            time += 1;
+        // int time = 0;
+        // // while (true){
+        // //     int blind = time%numPlayers;
+        //     Game game = new Game(players,1000,5);
+        //     game.startGame(0);
+        //     time += 1;
+        ArrayList<Integer> test = new ArrayList<>();
+        test.add(2);
+        test.add(3);
+        test.add(4);
+        test.add(5);
+        test.add(12);
+        test.add(9);
+        test.add(14);
+        System.err.println(isStraight(test));
         
         
     }
